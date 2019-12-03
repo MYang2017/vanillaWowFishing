@@ -4,8 +4,8 @@
 # fishing wow nostalrius
 
 ## todo list
-# add jump to avoid AFK
-# mouse move back rework
+# pyClick
+# Python-Imagesearch: https://medium.com/@martin.lees/image-recognition-for-automation-with-python-711ac617b4e5
 
 #####################
 #import Image # old command
@@ -53,8 +53,9 @@ area_sensi = Feras
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
 #####################
-# wowAppName = u"魔兽世界"
-
+wowAppName = u"魔兽世界"
+logDir = 'C:/Users/t-meya/Documents/My Games/WOW-related/fishing/log/'
+ifLog = False
 
 ##################### keys
 VK_CODE = {'backspace':0x08,
@@ -203,14 +204,16 @@ VK_CODE = {'backspace':0x08,
            ']':0xDD,
            "'":0xDE,
            '`':0xC0}
+
+
 def funcPressKey(keyName):
     keyString = VK_CODE[keyName]
     win32api.keybd_event(keyString, 0, 0, 0)
     anti_bot()
     win32api.keybd_event(keyString, 0, win32con.KEYEVENTF_KEYUP, 0)
     return
-
 ##################### keys finish
+
 
 ################################################### sound
 hockSoundMin = 0.011
@@ -225,7 +228,6 @@ INPUT_FRAMES_PER_BLOCK = int(RATE*INPUT_BLOCK_TIME)
 
 
 def get_rms(block):
-
     # RMS amplitude is defined as the square root of the
     # mean over time of the square of the amplitude.
     # so we need to convert this string of bytes into
@@ -256,13 +258,11 @@ stream = pa.open(format = FORMAT,                      #|
          input = True,                                 #|
          frames_per_buffer = INPUT_FRAMES_PER_BLOCK)   #]
 
-###################################################
-def mouse_rand():
-    return 0
-    #return random.randrange(-1,1)
+################################################### sound finish
+
 
 def anti_bot():
-    time.sleep( random.uniform(0.02,0.055) ) # prevent action too fast, anti anti-boot
+    time.sleep(random.uniform(0.02, 0.055))  # prevent action too fast, anti anti-boot
     return
 
 def get_mouse_posi():
@@ -323,8 +323,6 @@ def simpleRclick():
     return
 
 def Rclick(x,y,quickmode):
-    x = x + mouse_rand()
-    y = y + mouse_rand()
     win32api.SetCursorPos((x,y))
     win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN,x,y,0,0)
     if not quickmode:
@@ -333,8 +331,6 @@ def Rclick(x,y,quickmode):
     return
 
 def Lclick(x,y,quickmode):
-    x = x + mouse_rand()
-    y = y + mouse_rand()
     win32api.SetCursorPos((x,y))
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,x,y,0,0)
     if not quickmode:
@@ -343,9 +339,7 @@ def Lclick(x,y,quickmode):
     return
 
 def press_fish(): # press 1
-    win32api.keybd_event(0x31, 0,0,0)
-    anti_bot()
-    win32api.keybd_event(0x31,0 ,win32con.KEYEVENTF_KEYUP ,0)
+    funcPressKey('1')
     print('throw bob')
     return
 
@@ -410,70 +404,11 @@ def hook_bob_withShift(m_posi): # hold shift + right click
     win32api.SetCursorPos((x,y))
     return
 
-def lets_fish():
-    # add jump if AFK
-
-    # for Nostarius fishing
-    mouse_posi = get_mouse_posi() # mouse should be in wow window before start
-    Lclick(mouse_posi[0],mouse_posi[1],True) # get to wow window
-    #Lclick(-mouse_posi[0],mouse_posi[1],True) # get to other window
-    fishout = 0
-    while fishout <= 3:
-        if fishout != 3:
-            if fishout == 0:
-                base_Crange = get_area_colour_range(mouse_posi)
-            #current_mouse = get_mouse_posi()
-            #Lclick(mouse_posi[0],mouse_posi[1],True) # get to wow window
-            press_fish()
-            #Lclick(current_mouse[0],current_mouse[1],True) # get to other window
-            time.sleep(2)
-            fish_pic = image_grab( get_fish_area(mouse_posi, fish_area_w, fish_area_h) )
-            #fish_pic.save('fish.bmp', 'bmp')
-            Crange = get_colour_range(get_colours(fish_pic))
-            print('envi',base_Crange[1]*area_sensi[0],'<',Crange[1])
-            iffish = if_fishing(base_Crange, Crange, area_sensi[0])
-            if iffish:
-                print('bob stabled')
-                base_fishing_Crange = get_area_colour_range(mouse_posi)
-                time.sleep(2.5)
-                anti_bot()
-                break
-            time.sleep(1)
-            anti_bot()
-            fishout = fishout + 1
-        elif fishout == 3:
-            print('failed bob')
-            mouse_posi = get_mouse_posi()
-            jump()
-            time.sleep(6)
-            fishout = -1
-
-
-    time.sleep(3) # wait bob stable
-    time_start = time.time()
-    while True:
-        fish_pic = image_grab( get_fish_area(mouse_posi, fish_area_w, fish_area_h) )
-        Crange = get_colour_range(get_colours(fish_pic))
-        iffished = if_fishing(base_fishing_Crange, Crange, area_sensi[1])
-        print('bob',base_fishing_Crange[1]*area_sensi[1],'<',Crange[1])
-        if iffished:
-            #print(base_fishing_Crange,Crange)
-            #current_mouse = get_mouse_posi()
-            #Lclick(mouse_posi[0],mouse_posi[1],True) # get to wow window
-            hook_bob(mouse_posi)
-            #Lclick(current_mouse[0],current_mouse[1],True) # get to other window
-            print('hooked')
-            break
-        time_end = time.time()
-        if (time_end - time_start) > 26:
-            print('no fish hooked')
-            break
-    return
-
 
 def get_avg_background_red():
     # take a screen shoot of whole wow screen with bag open for log
-    takeScreenShootOfWholeWOW()
+    if ifLog:
+        takeScreenShootOfWholeWOW()
 
     centrex, centrey = find_centre_coors_of_window()
     mouse_posi = [centrex, centrey]
@@ -596,18 +531,18 @@ def find_avg(centres):
     return len(centres)
 
 def focusOnWOWWindow():
-    hwndMain = win32gui.FindWindow(None, u"魔兽世界")
+    hwndMain = win32gui.FindWindow(None, wowAppName)
     rect = win32gui.GetWindowRect(hwndMain)
     return rect
 
 def find_centre_coors_of_window():
-    hwndMain = win32gui.FindWindow(None, u"魔兽世界")
+    hwndMain = win32gui.FindWindow(None, wowAppName)
     rect = win32gui.GetWindowRect(hwndMain)
     wow_left = rect[0]
     wow_top = rect[1]
     wow_right = rect[2]
     wow_bottom = rect[3]
-    return (wow_left+wow_right)/2,(wow_top+wow_bottom)/2
+    return (wow_left+wow_right)/2, (wow_top+wow_bottom)/2
 
 def takeScreenShootOfWholeWOW():
     rect = focusOnWOWWindow()
@@ -617,7 +552,7 @@ def takeScreenShootOfWholeWOW():
     wow_bottom = rect[3]
     wholeWOWPic = image_grab((wow_left, wow_top, wow_right, wow_bottom))
     fileNames = getCurrentTimeAsString()
-    currentDirectory = 'C:/Users/t-meya/Documents/My Games/WOW-related/fishing/log/' + fileNames[1]
+    currentDirectory = logDir + fileNames[1]
     if not os.path.exists(currentDirectory):
         os.mkdir(currentDirectory)
     wholeWOWPic.save(currentDirectory + '/' + fileNames[0] + '.png', 'png')
@@ -674,9 +609,6 @@ def getCurrentTimeAsString():
     miao = timeNow.tm_sec
     return [str(shi) + '-' + str(fen) + '-' + str(miao), str(nian) + '-' + str(yue) + '-' + str(ri)]
 
-def saveScreen():
-
-    return
 
 # for Light's Hope fishing
 def smarter_lets_fish():
@@ -762,33 +694,9 @@ def smarter_lets_fish():
         print('next fish')
     return
 
-def buysomething():
-    time.sleep(3)
 
-    while True:
-        # spam left click on an item
-        simpleRclick()
-        time.sleep(0.3)
-        anti_bot()
-
-        # spam left click on another item
-        # move to another position
-
-    return
-
-
-##while True:
-##    # hover mouse on wow window before start
-##    lets_fish() # Nostarius
-##    time.sleep(5)
-##    anti_bot()
-##    print('next round')
-
-# call fishing
-for i in range(9):
-    print('open bag for log!')
-smarter_lets_fish()
-
-# buy something
-#buysomething()
-quit()
+if __name__ == '__main__':
+    for i in range(9):
+        print('open bag for log!')
+    smarter_lets_fish()
+    quit()
